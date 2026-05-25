@@ -2,9 +2,7 @@ package dev.utkarsh.bridgei.controller;
 
 import dev.utkarsh.bridgei.model.CustomerCloud;
 import dev.utkarsh.bridgei.repository.CustomerRepository;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -19,10 +17,16 @@ public class CustomerController {
         this.customerRepository = customerRepository;
     }
 
-    // When someone visits /api/customers, this method fires
+    // 1. READ: Sends data to the web page
     @GetMapping
     public List<CustomerCloud> getAllCustomers() {
         // Fetches all the cleaned AS/400 data from PostgreSQL
         return customerRepository.findAll();
+    }
+
+    // 2. CREATE: Receives data from the web page and saves it to Postgres
+    @PostMapping
+    public CustomerCloud addCustomer(@RequestBody CustomerCloud newCustomer) {
+        return customerRepository.save(newCustomer);
     }
 }

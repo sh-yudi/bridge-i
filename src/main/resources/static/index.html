@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bridge-i Dashboard</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 2rem; background: #f4f4f9; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 1rem; }
+        input { padding: 0.5rem; width: 100%; box-sizing: border-box; margin-top: 0.25rem; border: 1px solid #ccc; border-radius: 4px;}
+        button { padding: 0.5rem 1rem; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 0.5rem;}
+        button:hover { background: #0056b3; }
+        button.secondary { background: #28a745; }
+        button.secondary:hover { background: #218838; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f8f9fa; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🌉 Bridge-i Customer Dashboard</h2>
+
+    <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 6px; margin-bottom: 2rem;">
+        <h3>Add New Cloud Customer</h3>
+        <div class="form-group">
+            <label>ID</label>
+            <input type="number" id="custId" placeholder="e.g. 999">
+        </div>
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="custName" placeholder="e.g. Utkarsh Dev">
+        </div>
+        <div class="form-group">
+            <label>Status</label>
+            <input type="text" id="custStatus" placeholder="e.g. ACTIVE">
+        </div>
+        <div class="form-group">
+            <label>Join Date</label>
+            <input type="date" id="custDate">
+        </div>
+        <button onclick="submitData()">Save to PostgreSQL</button>
+    </div>
+
+    <button class="secondary" onclick="loadData()">Load All Customers</button>
+
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Joined Date</th>
+        </tr>
+        </thead>
+        <tbody id="tableBody">
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // 1. Function to GET data from your API
+    async function loadData() {
+        const response = await fetch('/api/customers');
+        const customers = await response.json();
+
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = ''; // Clear old data
+
+        customers.forEach(cust => {
+            const row = `<tr>
+                <td>${cust.id}</td>
+                <td>${cust.fullName}</td>
+                <td>${cust.accountStatus}</td>
+                <td>${cust.joinedDate}</td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+    }
+
+    // 2. Function to POST data to your API
+    async function submitData() {
+        const newCustomer = {
+            id: document.getElementById('custId').value,
+            fullName: document.getElementById('custName').value,
+            accountStatus: document.getElementById('custStatus').value,
+            joinedDate: document.getElementById('custDate').value
+        };
+
+        const response = await fetch('/api/customers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newCustomer)
+        });
+
+        if (response.ok) {
+            alert("Customer saved successfully!");
+            // Clear the form
+            document.getElementById('custId').value = '';
+            document.getElementById('custName').value = '';
+            document.getElementById('custStatus').value = '';
+            document.getElementById('custDate').value = '';
+
+            // Auto-refresh the table
+            loadData();
+        } else {
+            alert("Error saving customer. Check your console.");
+        }
+    }
+</script>
+
+</body>
+</html>
