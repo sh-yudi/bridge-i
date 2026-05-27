@@ -16,6 +16,13 @@
         table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
         th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #ddd; }
         th { background-color: #f8f9fa; }
+        /* Make locked buttons look obviously disabled */
+        button:disabled {
+            background-color: #cccccc;
+            color: #666666;
+            cursor: not-allowed;
+            border: 1px solid #999999;
+        }
     </style>
 </head>
 <body>
@@ -44,7 +51,7 @@
                 Invalid date! Check the month, day, and leap year.
             </span>
         </div>
-        <button id="saveBtn" onclick="submitData()">Save to PostgreSQL</button>
+        <button id="saveBtn" onclick="submitData()" disabled>Save to PostgreSQL</button>
     </div>
 
     <button class="secondary" onclick="loadData()">Load All Customers</button>
@@ -112,26 +119,40 @@
         return true;
     }
     // 2. Function to POST data to your API
-    // Real-time listener for the Date input field
+    // Real-time listener WITH Auto-Formatting (Input Masking)
     document.getElementById('custDate').addEventListener('input', function(event) {
-        const inputVal = event.target.value;
+        // 1. Strip out everything that isn't a number
+        let inputVal = event.target.value.replace(/\D/g, '');
+
+        // 2. Auto-inject the slashes at the right spots
+        if (inputVal.length > 4 && inputVal.length <= 6) {
+            inputVal = inputVal.substring(0, 4) + '/' + inputVal.substring(4);
+        } else if (inputVal.length > 6) {
+            inputVal = inputVal.substring(0, 4) + '/' + inputVal.substring(4, 6) + '/' + inputVal.substring(6, 8);
+        }
+
+        // 3. Force the input box to show our newly formatted string
+        event.target.value = inputVal;
+
         const errorSpan = document.getElementById('dateError');
         const saveBtn = document.getElementById('saveBtn');
 
+        // DEFAULT STATE: Button locked
+        saveBtn.disabled = true;
+        errorSpan.style.display = 'none';
+        event.target.style.borderColor = '#ccc';
+
+        // ONLY check the math when the auto-formatting reaches exactly 10 characters (YYYY/MM/DD)
         if (inputVal.length === 10) {
             if (isValidDate(inputVal)) {
-                errorSpan.style.display = 'none';
+                // It's perfect! Turn green and unlock the button.
                 event.target.style.borderColor = '#28a745';
                 saveBtn.disabled = false;
             } else {
+                // Math is wrong (e.g. Feb 30)
                 errorSpan.style.display = 'block';
                 event.target.style.borderColor = 'red';
-                saveBtn.disabled = true;
             }
-        } else {
-            errorSpan.style.display = 'none';
-            event.target.style.borderColor = '#ccc';
-            saveBtn.disabled = false;
         }
     });
     async function submitData() {
