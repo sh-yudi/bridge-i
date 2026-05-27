@@ -10,9 +10,9 @@ spring:
 app:
   datasource:
     postgres:
-      jdbc-url: jdbc:postgresql://localhost:5432/cloud_db
-      username: postgres
-      password: password
+      jdbc-url: ${CLOUD_DB_URL}
+      username: ${CLOUD_DB_USERNAME}
+      password: ${CLOUD_DB_PASSWORD}
       driver-class-name: org.postgresql.Driver
 
     # Source: IBM i (AS/400)
