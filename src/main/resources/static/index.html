@@ -39,9 +39,12 @@
         </div>
         <div class="form-group">
             <label>Join Date</label>
-            <input type="date" id="custDate">
+            <input type="text" id="custDate" placeholder="YYYY/MM/DD">
+            <span id="dateError" style="color: red; display: none; font-size: 0.85rem; margin-top: 5px;">
+                Invalid date! Check the month, day, and leap year.
+            </span>
         </div>
-        <button onclick="submitData()">Save to PostgreSQL</button>
+        <button id="saveBtn" onclick="submitData()">Save to PostgreSQL</button>
     </div>
 
     <button class="secondary" onclick="loadData()">Load All Customers</button>
@@ -80,13 +83,66 @@
         });
     }
 
+    // Strict mathematical date validator
+    function isValidDate(dateString) {
+        // Make sure a date was actually entered
+        if (!dateString) return false;
+
+        // Split the YYYY-MM-DD string into numbers
+        const parts = dateString.split('/');
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10);
+        const day = parseInt(parts[2], 10);
+
+        // 1. Check Month limits (1 to 12)
+        if (month < 1 || month > 12) return false;
+
+        // 2. Define max days for each month (Jan, Feb, Mar, etc.)
+        const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+        // 3. Leap Year Check for February
+        // Leap years are divisible by 4. (Exceptions: Divisible by 100 unless also divisible by 400).
+        if (year % 400 === 0 || (year % 100 !== 0 && year % 4 === 0)) {
+            daysInMonth[1] = 29; // Update February to 29 days
+        }
+
+        // 4. Check Day limits based on the specific month
+        if (day < 1 || day > daysInMonth[month - 1]) return false;
+
+        return true;
+    }
     // 2. Function to POST data to your API
+    // Real-time listener for the Date input field
+    document.getElementById('custDate').addEventListener('input', function(event) {
+        const inputVal = event.target.value;
+        const errorSpan = document.getElementById('dateError');
+        const saveBtn = document.getElementById('saveBtn');
+
+        if (inputVal.length === 10) {
+            if (isValidDate(inputVal)) {
+                errorSpan.style.display = 'none';
+                event.target.style.borderColor = '#28a745';
+                saveBtn.disabled = false;
+            } else {
+                errorSpan.style.display = 'block';
+                event.target.style.borderColor = 'red';
+                saveBtn.disabled = true;
+            }
+        } else {
+            errorSpan.style.display = 'none';
+            event.target.style.borderColor = '#ccc';
+            saveBtn.disabled = false;
+        }
+    });
     async function submitData() {
+         const dateInput = document.getElementById('custDate').value;
+
         const newCustomer = {
             id: document.getElementById('custId').value,
             fullName: document.getElementById('custName').value,
             accountStatus: document.getElementById('custStatus').value,
-            joinedDate: document.getElementById('custDate').value
+            // Swap the slashes back to dashes for Java!
+            joinedDate: dateInput.replaceAll('/', '-')
         };
 
         const response = await fetch('/api/customers', {
@@ -106,7 +162,9 @@
             // Auto-refresh the table
             loadData();
         } else {
-            alert("Error saving customer. Check your console.");
+            // Read the exact error message sent by the Spring Boot backend
+            const errorMessage = await response.text();
+            alert(errorMessage);
         }
     }
 </script>

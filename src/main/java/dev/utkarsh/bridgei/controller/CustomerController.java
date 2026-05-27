@@ -3,6 +3,8 @@ package dev.utkarsh.bridgei.controller;
 import dev.utkarsh.bridgei.model.CustomerCloud;
 import dev.utkarsh.bridgei.repository.CustomerRepository;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -24,9 +26,19 @@ public class CustomerController {
         return customerRepository.findAll();
     }
 
-    // 2. CREATE: Receives data from the web page and saves it to Postgres
+    // 2. CREATE: Receives data, checks for duplicates, and saves to Postgres
     @PostMapping
-    public CustomerCloud addCustomer(@RequestBody CustomerCloud newCustomer) {
-        return customerRepository.save(newCustomer);
+    public ResponseEntity<?> addCustomer(@RequestBody CustomerCloud newCustomer) {
+        // Check if the ID already exists in the database
+        if (customerRepository.existsById(newCustomer.getId())) {
+            // Return a 409 Conflict error with a custom message
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body("Error: Customer with ID " + newCustomer.getId() + " already exists. Please enter a different ID.");
+        }
+
+        // If it does not exist, save it normally and return a 201 Created status
+        CustomerCloud savedCustomer = customerRepository.save(newCustomer);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedCustomer);
     }
 }

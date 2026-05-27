@@ -18,8 +18,8 @@ app:
     # Source: IBM i (AS/400)
     as400:
       jdbc-url: jdbc:as400://PUB400.COM;prompt=false;naming=system;libraries=*LIBL;
-      username: ${AS400_USERNAME:YOUR_NEW_USERNAME_HERE}
-      password: ${AS400_PASSWORD:YOUR_NEW_PASSWORD_HERE}
+      username: ${AS400_USERNAME:YOUR_USERNAME_HERE}
+      password: ${AS400_PASSWORD:YOUR_PASSWORD_HERE}
       driver-class-name: com.ibm.as400.access.AS400JDBCDriver
       maximum-pool-size: 5
       connection-test-query: SELECT 1 FROM SYSIBM.SYSDUMMY1
